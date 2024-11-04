@@ -6,6 +6,10 @@ import Image from "next/image";
 
 
 export default function BackgroundBeamsWithCollisionDemo() {
+
+  
+
+
   return (
     <BackgroundBeamsWithCollision>
       <div className="absolute left-1/2 top-8 mt-5 transform -translate-x-1/2 bg-clip-text bg-no-repeat text-transparent bg-gradient-to-r py-4 text-3xl from-purple-500 via-violet-500 to-pink-500 [text-shadow:0_0_rgba(0,0,0,0.1)]">
@@ -40,11 +44,11 @@ export default function BackgroundBeamsWithCollisionDemo() {
           />
         </CardItem>
 
-        <div className="flex justify-center items-center mt-16">
+        <div className="flex justify-center items-center mt-12">
           <CardItem
             translateZ={20}
             as="button"
-            className="px-6 py-3 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold"
+            className="px-6 py-3 rounded-xl bg-black dark:bg-white dark:text-black text-white text-lg font-bold"
           >
             I am a student
           </CardItem>
@@ -75,11 +79,11 @@ export default function BackgroundBeamsWithCollisionDemo() {
           />
         </CardItem>
 
-        <div className="flex justify-center items-center mt-16">
+        <div className="flex justify-center items-center mt-12">
           <CardItem
             translateZ={20}
             as="button"
-            className="px-6 py-3 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold"
+            className="px-6 py-3 rounded-xl bg-black dark:bg-white dark:text-black text-white text-lg font-bold"
           >
             I am a teacher
           </CardItem>
