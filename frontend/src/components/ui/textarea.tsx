@@ -25,6 +25,7 @@
 
 // components/TextAreaExample.js
 
+<<<<<<< HEAD
 // import * as React from "react";
 
 // function TextArea() {
@@ -82,3 +83,38 @@ const TextArea = () => {
 };
 
 export default TextArea;
+=======
+import * as React from "react";
+
+function TextArea() {
+  const [text, setText] = React.useState("");
+
+  const handleChange = (event) => {
+    setText(event.target.value);
+  };
+
+  return (
+    <div style={{ padding: "1rem" }}>
+      <textarea
+        style={{
+          minHeight: "100px",
+          width: "100%",
+          padding: "10px",
+          fontSize: "16px",
+          borderRadius: "4px",
+          border: "1px solid #ccc",
+          resize: "vertical", // Allows resizing
+          cursor: "text", // Explicitly sets text cursor
+          color: "#000", // Ensures text color is set
+          backgroundColor: "#fff", // Sets background color
+        }}
+        value={text}
+        onChange={handleChange}
+        placeholder="Type here..."
+      />
+    </div>
+  );
+}
+
+export default TextArea;
+>>>>>>> 26c29ed210dcbc88cc448225f082515e9e884a4a
