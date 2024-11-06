@@ -119,15 +119,51 @@ export default function BackgroundBeamsWithCollisionDemo() {
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [showTeacherModal, setShowTeacherModal] = useState(false);
   const [error, setError] = useState("");
+  const [errorlog, setErrorLog] = useState("");
+
   const router = useRouter();
   
 
   
-  const handleStudentLogin = (e) => {
+  const handleStudentLogin = async (e) => {
     e.preventDefault();
+    setErrorLog("");
+
+    const formDataLog = new FormData(e.target);
+    const data = {
+      name: formDataLog.get('srn'),
+      password: formDataLog.get('password'),
+    };
     
+    try {
+      const response = await fetch('http://localhost:5001/api/student/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        
+        credentials: 'include',  // Add this if you're using sessions
+        body: JSON.stringify({
+          name: data.name,
+          password: data.password
+        })
+      });
+  
+      const result = await response.json();
+      
+      if (response.ok) {
+        router.push("/student");
+      } else {
+        setErrorLog("Login failed");
+      }
+    } catch (err) {
+      console.log("err: ", err);
+      setErrorLog("Connection error. Please try again.");
+    }
+
     // Add your student login logic here
-    router.push("/student");
+    
   };
   const handleStudentSignup = async (e) => {
     e.preventDefault();
@@ -180,6 +216,7 @@ export default function BackgroundBeamsWithCollisionDemo() {
     router.push("/teacher");
   };
 
+  
 
 
   return (
@@ -267,9 +304,13 @@ export default function BackgroundBeamsWithCollisionDemo() {
             </TabsList>
             
             <TabsContent value="login">
+            {errorlog && (
+                <div className="text-red-500 text-sm">{errorlog}</div>
+                )}
               <form onSubmit={handleStudentLogin} className="space-y-4 mt-4">
                 <div className="space-y-2">
                   <Input
+                    name="srn"
                     type="text"
                     placeholder="Student SRN"
                     className="w-full"
@@ -278,6 +319,7 @@ export default function BackgroundBeamsWithCollisionDemo() {
                 </div>
                 <div className="space-y-2">
                   <Input
+                    name="password"
                     type="password"
                     placeholder="Password"
                     className="w-full"
