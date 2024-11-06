@@ -99,7 +99,7 @@
 // }
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
 import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card";
 import { useRouter } from "next/navigation";
@@ -115,11 +115,13 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function BackgroundBeamsWithCollisionDemo() {
-
+  const [message, setMessage] = useState(null);
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [showTeacherModal, setShowTeacherModal] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  
+
   
   const handleStudentLogin = (e) => {
     e.preventDefault();
@@ -145,7 +147,7 @@ export default function BackgroundBeamsWithCollisionDemo() {
     }
   
     try {
-      const response = await fetch('http://localhost:5000/api/student/signup', {
+      const response = await fetch('http://localhost:5001/api/student/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -178,12 +180,14 @@ export default function BackgroundBeamsWithCollisionDemo() {
     router.push("/teacher");
   };
 
+
+
   return (
     <BackgroundBeamsWithCollision>
       <div className="absolute left-1/2 top-8 mt-5 transform -translate-x-1/2 bg-clip-text bg-no-repeat text-transparent bg-gradient-to-r py-4 text-3xl from-purple-500 via-violet-500 to-pink-500 [text-shadow:0_0_rgba(0,0,0,0.1)]">
         <div className="text-6xl">Choose your user type</div>
       </div>
-      
+
       <div className="flex flex-col lg:flex-row gap-14">
         {/* Student Card */}
         <div onClick={() => setShowStudentModal(true)} className="cursor-pointer">
