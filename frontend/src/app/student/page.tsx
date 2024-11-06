@@ -7,7 +7,7 @@ import { FileUpload } from "@/components/ui/file-upload";
 import TextArea from "@/components/ui/textarea";
 
 export default function ShootingStarsAndStarsBackgroundDemo() {
-  const [files, setFiles] = useState<File[]>([]);
+ 
   const [files, setFiles] = useState<File[]>([]);
   const handleFileUpload = (files: File[]) => {
     setFiles(files);
