@@ -24,66 +24,6 @@
 // export { Textarea }
 
 // components/TextAreaExample.js
-
-<<<<<<< HEAD
-// import * as React from "react";
-
-// function TextArea() {
-//   const [text, setText] = React.useState("");
-
-//   const handleChange = (event) => {
-//     setText(event.target.value);
-//   };
-
-//   return (
-//     <div style={{ padding: "1rem" }}>
-//       <textarea
-//         style={{
-//           minHeight: "100px",
-//           width: "100%",
-//           padding: "10px",
-//           fontSize: "16px",
-//           borderRadius: "4px",
-//           border: "1px solid #ccc",
-//           resize: "vertical", // Allows resizing
-//           cursor: "text", // Explicitly sets text cursor
-//           color: "#000", // Ensures text color is set
-//           backgroundColor: "#fff", // Sets background color
-//         }}
-//         value={text}
-//         onChange={handleChange}
-//         placeholder="Type here..."
-//       />
-//     </div>
-//   );
-// }
-
-// export default TextArea;
-
-import { useState } from 'react';
-
-const TextArea = () => {
-  const [text, setText] = useState('');
-  
-  const handleChange = (e) => {
-    setText(e.target.value);
-  };
-
-  return (
-    <div className="p-4">
-      <textarea
-        value={text}
-        onChange={handleChange}
-        placeholder="Type here..."
-        className="min-h-[100px] w-full p-3 text-base rounded border border-gray-300 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        aria-label="Text input area"
-      />
-    </div>
-  );
-};
-
-export default TextArea;
-=======
 import * as React from "react";
 
 function TextArea() {
@@ -94,20 +34,27 @@ function TextArea() {
   };
 
   return (
-    <div style={{ padding: "1rem" }}>
+    <div className="p-4">
       <textarea
-        style={{
-          minHeight: "100px",
-          width: "100%",
-          padding: "10px",
-          fontSize: "16px",
-          borderRadius: "4px",
-          border: "1px solid #ccc",
-          resize: "vertical", // Allows resizing
-          cursor: "text", // Explicitly sets text cursor
-          color: "#000", // Ensures text color is set
-          backgroundColor: "#fff", // Sets background color
-        }}
+        className="
+          h-96
+          w-full
+          p-2.5 
+          text-sm 
+          rounded-md 
+          border 
+          border-gray-300 
+          resize-y 
+          cursor-text 
+          text-black 
+          bg-white
+          dark:bg-black
+          dark:text-white
+          dark:border-neutral-800
+          focus:outline-none 
+          focus:ring-1 
+          focus:ring-blue-500
+        "
         value={text}
         onChange={handleChange}
         placeholder="Type here..."
@@ -117,4 +64,3 @@ function TextArea() {
 }
 
 export default TextArea;
->>>>>>> 26c29ed210dcbc88cc448225f082515e9e884a4a
