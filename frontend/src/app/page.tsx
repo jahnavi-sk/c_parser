@@ -4,11 +4,7 @@
 // import Link from "next/link";
 // import Image from "next/image";
 
-
 // export default function BackgroundBeamsWithCollisionDemo() {
-
-  
-
 
 //   return (
 //     <BackgroundBeamsWithCollision>
@@ -67,8 +63,6 @@
 //           Teacher
 //         </CardItem>
 
-
-
 //         <CardItem translateZ="100" className="w-full mt-4">
 //           <Image
 //             src="/teacher_img.jpeg"
@@ -92,8 +86,7 @@
 //     </CardContainer>
 //     </Link>
 //       </div>
-    
-      
+
 //     </BackgroundBeamsWithCollision>
 //   );
 // }
@@ -122,36 +115,34 @@ export default function BackgroundBeamsWithCollisionDemo() {
   const [errorlog, setErrorLog] = useState("");
 
   const router = useRouter();
-  
 
-  
   const handleStudentLogin = async (e) => {
     e.preventDefault();
     setErrorLog("");
 
     const formDataLog = new FormData(e.target);
     const data = {
-      name: formDataLog.get('srn'),
-      password: formDataLog.get('password'),
+      name: formDataLog.get("srn"),
+      password: formDataLog.get("password"),
     };
-    
+
     try {
-      const response = await fetch('http://localhost:5001/api/student/login', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5001/api/student/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-        
-        credentials: 'include',  // Add this if you're using sessions
+
+        credentials: "include", // Add this if you're using sessions
         body: JSON.stringify({
           name: data.name,
-          password: data.password
-        })
+          password: data.password,
+        }),
       });
-  
+
       const result = await response.json();
-      
+
       if (response.ok) {
         router.push("/student");
       } else {
@@ -163,43 +154,42 @@ export default function BackgroundBeamsWithCollisionDemo() {
     }
 
     // Add your student login logic here
-    
   };
   const handleStudentSignup = async (e) => {
     e.preventDefault();
     setError("");
-    
+
     const formData = new FormData(e.target);
     const data = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      password: formData.get('password'),
-      confirmPassword: formData.get('confirmPassword')
+      name: formData.get("name"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+      confirmPassword: formData.get("confirmPassword"),
     };
-    
+
     if (data.password !== data.confirmPassword) {
       setError("Passwords don't match");
       return;
     }
-  
+
     try {
-      const response = await fetch('http://localhost:5001/api/student/signup', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5001/api/student/signup", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-        
-        credentials: 'include',  // Add this if you're using sessions
+
+        credentials: "include", // Add this if you're using sessions
         body: JSON.stringify({
           name: data.name,
           email: data.email,
-          password: data.password
-        })
+          password: data.password,
+        }),
       });
-  
+
       const result = await response.json();
-      
+
       if (response.ok) {
         router.push("/student");
       } else {
@@ -216,18 +206,18 @@ export default function BackgroundBeamsWithCollisionDemo() {
     router.push("/teacher");
   };
 
-  
-
-
   return (
     <BackgroundBeamsWithCollision>
       <div className="absolute left-1/2 top-8 mt-5 transform -translate-x-1/2 bg-clip-text bg-no-repeat text-transparent bg-gradient-to-r py-4 text-3xl from-purple-500 via-violet-500 to-pink-500 [text-shadow:0_0_rgba(0,0,0,0.1)]">
-        <div className="text-6xl">Choose your user type</div>
+        <div className="text-6xl pb-3">who are you?</div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-14">
         {/* Student Card */}
-        <div onClick={() => setShowStudentModal(true)} className="cursor-pointer">
+        <div
+          onClick={() => setShowStudentModal(true)}
+          className="cursor-pointer"
+        >
           <CardContainer className="inter-var">
             <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border">
               <CardItem
@@ -259,7 +249,10 @@ export default function BackgroundBeamsWithCollisionDemo() {
         </div>
 
         {/* Teacher Card */}
-        <div onClick={() => setShowTeacherModal(true)} className="cursor-pointer">
+        <div
+          onClick={() => setShowTeacherModal(true)}
+          className="cursor-pointer"
+        >
           <CardContainer className="inter-var text-center">
             <CardBody className="text-center bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border">
               <CardItem
@@ -302,11 +295,11 @@ export default function BackgroundBeamsWithCollisionDemo() {
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="login">
-            {errorlog && (
+              {errorlog && (
                 <div className="text-red-500 text-sm">{errorlog}</div>
-                )}
+              )}
               <form onSubmit={handleStudentLogin} className="space-y-4 mt-4">
                 <div className="space-y-2">
                   <Input
@@ -334,18 +327,14 @@ export default function BackgroundBeamsWithCollisionDemo() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit">
-                    Login
-                  </Button>
+                  <Button type="submit">Login</Button>
                 </div>
               </form>
             </TabsContent>
 
             <TabsContent value="signup">
               <form onSubmit={handleStudentSignup} className="space-y-4 mt-4">
-                {error && (
-                <div className="text-red-500 text-sm">{error}</div>
-                )}
+                {error && <div className="text-red-500 text-sm">{error}</div>}
                 <div className="space-y-2">
                   <Input
                     name="name"
@@ -390,14 +379,10 @@ export default function BackgroundBeamsWithCollisionDemo() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit">
-                    Sign Up
-                  </Button>
+                  <Button type="submit">Sign Up</Button>
                 </div>
               </form>
             </TabsContent>
-
-            
           </Tabs>
         </DialogContent>
       </Dialog>
@@ -433,9 +418,7 @@ export default function BackgroundBeamsWithCollisionDemo() {
               >
                 Cancel
               </Button>
-              <Button type="submit">
-                Login
-              </Button>
+              <Button type="submit">Login</Button>
             </div>
           </form>
         </DialogContent>
