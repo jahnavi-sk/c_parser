@@ -85,6 +85,34 @@ def authenticate_student(srn, password):
     finally:
         cur.close()
 
+def authenticate_teacher(name, password):
+    # Connect to the database
+    cur = mysql.connection.cursor()
+
+    try:
+        # Query the database for a teacher with the given SRN (name)
+        # print("name", name)
+        cur.execute("SELECT id, password FROM teachers WHERE id = %s", (name,))
+        teacher = cur.fetchone()
+        print("teacher:", teacher)
+        
+        if teacher:
+            # teacher[2] is the stored password from the DB
+            db_password = teacher[1]
+
+            # Check if the provided password matches the stored password
+            if password == db_password:
+                return True  # Authentication successful
+            else:
+                return False  # Password doesn't match
+        else:
+            return False  # Teacher with the given SRN doesn't exist
+    except Exception as e:
+        app.logger.error(f"Database error: {str(e)}")
+        return False
+    finally:
+        cur.close()
+
 # Test route
 @app.route('/api/test', methods=['GET'])
 
@@ -181,6 +209,29 @@ def student_login():
         return jsonify({'message': 'Login successful', 'token': 'your_jwt_token_here'}), 200
     else:
         return jsonify({'message': 'Invalid SRN or password'}), 401
+
+
+
+@app.route('/api/teacher/login', methods=['POST'])
+def teacher_login():
+    data = request.get_json()
+    if not data:
+            app.logger.error("No JSON data received")
+            return jsonify({'message': 'No data provided'}), 400
+    
+    name = data.get('name')
+    password = data.get('password')
+    print("name", name)
+    print("pwd", password)
+
+    
+
+    if authenticate_teacher(name, password):
+        return jsonify({'message': 'Login successful', 'token': 'your_jwt_token_here'}), 200
+    else:
+        return jsonify({'message': 'Invalid SRN or password'}), 401
+
+
 
 @app.route('/api/upload', methods=["POST"])
 def upload_file():

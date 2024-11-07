@@ -45,7 +45,7 @@ export default function ShootingStarsAndStarsBackgroundDemo() {
   };
   
 
-  const SuccessMessageBox = ({ onClose }) => {
+  const SuccessMessageBox = ({ onClose }: { onClose: () => void }) => { // 
     return (
       <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-50 bg-black bg-opacity-50">
         <div className="bg-white dark:bg-gray-900 p-8 rounded-lg shadow-lg relative">

@@ -29,7 +29,7 @@ import * as React from "react";
 function TextArea() {
   const [text, setText] = React.useState("");
 
-  const handleChange = (event) => {
+  const handleChange = (event: any) => {
     setText(event.target.value);
   };
 

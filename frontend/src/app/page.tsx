@@ -113,10 +113,12 @@ export default function BackgroundBeamsWithCollisionDemo() {
   const [showTeacherModal, setShowTeacherModal] = useState(false);
   const [error, setError] = useState("");
   const [errorlog, setErrorLog] = useState("");
+  const [errortlog, setErrorTLog] = useState("");
+
 
   const router = useRouter();
 
-  const handleStudentLogin = async (e) => {
+  const handleStudentLogin = async (e: any) => {
     e.preventDefault();
     setErrorLog("");
 
@@ -155,7 +157,7 @@ export default function BackgroundBeamsWithCollisionDemo() {
 
     // Add your student login logic here
   };
-  const handleStudentSignup = async (e) => {
+  const handleStudentSignup = async (e: any) => {
     e.preventDefault();
     setError("");
 
@@ -200,10 +202,44 @@ export default function BackgroundBeamsWithCollisionDemo() {
       setError("Connection error. Please try again.");
     }
   };
-  const handleTeacherLogin = (e) => {
+  const handleTeacherLogin = async(e:any) => {
     e.preventDefault();
-    // Add your teacher login logic here
-    router.push("/teacher");
+    
+    setErrorTLog("");
+
+    const formDataLog = new FormData(e.target);
+    const data = {
+      name: formDataLog.get("name"),
+      password: formDataLog.get("password"),
+    };
+
+    try {
+      const response = await fetch("http://localhost:5001/api/teacher/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+
+        credentials: "include", // Add this if you're using sessions
+        body: JSON.stringify({
+          name: data.name,
+          password: data.password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        router.push("/teacher");
+      } else {
+        setErrorTLog("Login failed");
+      }
+    } catch (err) {
+      console.log("err: ", err);
+      setErrorTLog("Connection error. Please try again.");
+    }
+    
   };
 
   return (
@@ -393,17 +429,22 @@ export default function BackgroundBeamsWithCollisionDemo() {
           <DialogHeader>
             <DialogTitle>Teacher Login</DialogTitle>
           </DialogHeader>
+          {errortlog && (
+                <div className="text-red-500 text-sm">{errortlog}</div>
+              )}
           <form onSubmit={handleTeacherLogin} className="space-y-4 mt-4">
             <div className="space-y-2">
               <Input
-                type="email"
-                placeholder="Email"
+                name="name"
+                type="text"
+                placeholder="Teacher ID"
                 className="w-full"
                 required
               />
             </div>
             <div className="space-y-2">
               <Input
+                name="password"
                 type="password"
                 placeholder="Password"
                 className="w-full"
