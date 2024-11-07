@@ -120,7 +120,6 @@ def test():
     return jsonify({"message": "API is working"}), 200
 
 @app.route('/api/student/signup', methods=['POST', 'OPTIONS'])
-
 def student_signup():
     # Handle preflight requests
     if request.method == "OPTIONS":
@@ -173,8 +172,8 @@ def student_signup():
 
             # Insert new student
             cur.execute(
-                "INSERT INTO students (name, email, password) VALUES (%s, %s, %s)",
-                (name, email, hashed_password)
+                "INSERT INTO students (name, email, password, graded) VALUES (%s, %s, %s, %s)",
+                (name, email, hashed_password,False)
             )
             # Commit the transaction
             mysql.connection.commit()
@@ -256,6 +255,34 @@ def upload_file():
 
     return jsonify({"error": "File upload failed"}), 500
 
+
+@app.route('/api/studentlist', methods=['GET'])
+def get_student_ids():
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT name FROM students where graded=0")
+        student_ids = [row[0] for row in cur.fetchall()]
+        return jsonify({"student_ids": student_ids})
+    except Exception as e:
+        app.logger.error(f"Database error: {str(e)}")
+        return False
+    finally:
+        cur.close()
+
+@app.route('/api/students/<student_id>/grade', methods=['POST'])
+def update_graded_status(student_id):
+    try:
+        print("student_id", student_id)
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE students SET graded = CASE WHEN name = %s THEN true ELSE false END WHERE id > 0;", (student_id,))
+        # cur.execute("UPDATE students SET graded = true WHERE name = %s", (student_id,))
+        mysql.connection.commit()
+        return jsonify({"message": f"Successfully updated graded status for student {student_id}"})
+    except Exception as e:
+        app.logger.error(f"Database error: {str(e)}")
+        return False
+    finally:
+        cur.close()
 
 if __name__ == '__main__':
     # Enable debug logging
