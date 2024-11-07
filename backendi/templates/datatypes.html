@@ -1,0 +1,40 @@
+<!-- templates/datatypes.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD Operations</title>
+</head>
+<body>
+    <h1>CRUD Operations for Datatypes</h1>
+    
+    <a href="{{ url_for('create_datatype') }}">Create Datatype</a>
+    <br><br>
+
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Size</th>
+            <th>isBuiltIn</th>
+            <th>isMacro</th>
+            <th>Actions</th>
+        </tr>
+        {% for datatype in datatypes %}
+        <tr>
+            <td>{{ datatype['id'] }}</td>
+            <td>{{ datatype['name'] }}</td>
+            <td>{{ datatype['size'] }}</td>
+            <td>{{ datatype['isBuiltIn'] | yesno:'Yes,No' }}</td>
+            <td>{{ datatype['isMacro'] | yesno:'Yes,No' }}</td>
+            <td>
+                <a href="{{ url_for('update_datatype', id=datatype['id']) }}">Update</a> |
+                <a href="{{ url_for('delete_datatype', id=datatype['id']) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
+
