@@ -25,10 +25,9 @@ libraries (
 files (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
-    location VARCHAR(255) NOT NULL
 );
 
-Variables (
+Variables ( -- these are the variables defined by the user
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     initialValue VARCHAR(255),
@@ -38,7 +37,7 @@ Variables (
     FOREIGN KEY (dataTypeID) REFERENCES datatypes(id)
 );
 
-func (
+func ( -- this stands for functions defined in the C code
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     initialLine INT,
@@ -57,4 +56,6 @@ controlStructure (
     fileRef VARCHAR(255),
     FOREIGN KEY (parentFunctionID) REFERENCES func(id)
 );
+dont return anything apart from sql queries. return only the sql queries, dont return any other text.
+if anything apart from C code is given input just return "please input C code only"
 """
