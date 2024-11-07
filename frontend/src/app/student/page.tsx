@@ -4,10 +4,14 @@ import { ShootingStars } from "@/components/ui/shooting-stars";
 import { StarsBackground } from "@/components/ui/stars-background";
 import { FileUpload } from "@/components/ui/file-upload";
 import TextArea from "@/components/ui/textarea";
+import { useSearchParams } from 'next/navigation';
 
 export default function ShootingStarsAndStarsBackgroundDemo() {
   const [files, setFiles] = useState<File[]>([]);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const searchParams = useSearchParams();
+  const srn = searchParams.get('srn');
+  
 
   const handleFileUpload = (uploadedFiles: File[]) => {
     setFiles(uploadedFiles);
@@ -15,10 +19,18 @@ export default function ShootingStarsAndStarsBackgroundDemo() {
   };
 
   const handleSubmit = async () => {
+    console.log("SRN IS!!",srn)
     if (files.length > 0) {
       const formData = new FormData();
       formData.append("file", files[0]);
   
+    if (srn) {
+      formData.append("srn", srn);
+    } else {
+      console.error("SRN is missing.");
+      alert("Error: SRN is missing.");
+      return;
+    }
       try {
         const response = await fetch("http://localhost:5001/api/upload", {
           method: "POST",
@@ -78,6 +90,7 @@ export default function ShootingStarsAndStarsBackgroundDemo() {
   const handleCloseSuccessBox = () => {
     setUploadSuccess(false);
   };
+
   return (
     <div>
       <div className="h-screen rounded-md bg-neutral-900 flex flex-col items-center relative w-full">

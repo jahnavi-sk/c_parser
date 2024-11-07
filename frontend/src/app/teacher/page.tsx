@@ -14,6 +14,9 @@ export default function TeacherDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  // const [codeContent, setCodeContent] = useState(null);
+  const [codeContent, setCodeContent] = useState<string | null>(null);
+
 
 
 
@@ -47,12 +50,33 @@ export default function TeacherDashboard() {
       
       // Update selected student in state
       setSelectedStudent(id);
+      setCodeContent(null);
       setIsOpen(false);
     } catch (err) {
       console.error('Error updating graded status:', err);
       // You might want to show this error to the user
     }
   };
+
+  const handleViewCode = async (): Promise<void> => {
+    if (!selectedStudent) {
+        alert("Please select a student first.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:5001/api/students/${selectedStudent}/code`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch code content.");
+        }
+
+        const data: { file_content: string } = await response.json();
+        setCodeContent(data.file_content);
+    } catch (err) {
+        console.error("Error fetching code content:", err);
+        setCodeContent("Error loading code!");
+    }
+};
 
   useEffect(() => {
     if (isOpen) {
@@ -87,7 +111,7 @@ export default function TeacherDashboard() {
             </span>
           </button>
 
-          <button className="relative inline-flex items-center justify-center p-0.5 text-xl font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 transform hover:scale-110 transition-all duration-300 ease-in-out active:from-green-500 active:to-blue-700 active:scale-95">
+          <button onClick={handleViewCode} className="relative inline-flex items-center justify-center p-0.5 text-xl font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 transform hover:scale-110 transition-all duration-300 ease-in-out active:from-green-500 active:to-blue-700 active:scale-95">
             <span className="relative w-full px-10 py-8 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
               View Code
             </span>
@@ -102,17 +126,24 @@ export default function TeacherDashboard() {
 
         {/* Center display card */}
         <Card className="flex-1 min-h-[600px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-          {selectedStudent && (
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+    {selectedStudent && (
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                 Chosen: Student {selectedStudent}
-              </h3>
-            </div>
-          )}
-          <div className="p-6 text-center text-gray-500 dark:text-gray-400 text-xl">
-            {!selectedStudent && "Select a student to begin"}
-          </div>
-        </Card>
+            </h3>
+        </div>
+    )}
+    <div className="p-6 text-center text-gray-500 dark:text-gray-400 text-xl">
+        {codeContent ? (
+            <pre className="whitespace-pre-wrap text-left">
+                {codeContent}
+            </pre>
+        ) : (
+            "Select a student to view code"
+        )}
+    </div>
+</Card>
+
 
         {/* Right column buttons */}
         <div className="flex flex-col gap-16 mt-20 w-64 ml-10">

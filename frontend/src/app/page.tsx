@@ -1,95 +1,3 @@
-// import React from "react";
-// import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
-// import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card";
-// import Link from "next/link";
-// import Image from "next/image";
-
-// export default function BackgroundBeamsWithCollisionDemo() {
-
-//   return (
-//     <BackgroundBeamsWithCollision>
-//       <div className="absolute left-1/2 top-8 mt-5 transform -translate-x-1/2 bg-clip-text bg-no-repeat text-transparent bg-gradient-to-r py-4 text-3xl from-purple-500 via-violet-500 to-pink-500 [text-shadow:0_0_rgba(0,0,0,0.1)]">
-//         <div className="text-6xl">Choose your user type</div>
-//       </div>
-//       <div className="flex flex-col lg:flex-row gap-14">
-//         <Link href="/student">
-//       <CardContainer className="inter-var">
-//       <CardBody className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border  ">
-//         <CardItem
-//           translateZ="50"
-//           className="text-3xl font-bold text-neutral-600 dark:text-white"
-// >
-//           Student
-//         </CardItem>
-
-//         {/* <CardItem
-//           as="p"
-//           translateZ="60"
-//           className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
-//         >
-//           Hover over this card to unleash the power of CSS perspective
-//         </CardItem> */}
-
-//         <CardItem translateZ="100" className="w-full mt-4">
-//           <Image
-//             src="/student_img.jpeg"
-//             height="1000"
-//             width="1000"
-//             className="h-80 w-full object-cover rounded-xl group-hover/card:shadow-xl"
-//             alt="thumbnail"
-//           />
-//         </CardItem>
-
-//         <div className="flex justify-center items-center mt-12">
-//           <CardItem
-//             translateZ={20}
-//             as="button"
-//             className="px-6 py-3 rounded-xl bg-black dark:bg-white dark:text-black text-white text-lg font-bold"
-//           >
-//             I am a student
-//           </CardItem>
-//         </div>
-//       </CardBody>
-//     </CardContainer>
-//         </Link>
-
-//     <Link href="/teacher">
-//     <CardContainer className="inter-var text-center">
-//       <CardBody className="text-center bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border  ">
-//         <CardItem
-//           translateZ="50"
-//           className="flex justify-center items-center text-center text-3xl font-bold text-neutral-600 dark:text-white"
-// >
-//           Teacher
-//         </CardItem>
-
-//         <CardItem translateZ="100" className="w-full mt-4">
-//           <Image
-//             src="/teacher_img.jpeg"
-//             height="1000"
-//             width="1000"
-//             className="h-80 w-full object-cover rounded-xl group-hover/card:shadow-xl"
-//             alt="thumbnail"
-//           />
-//         </CardItem>
-
-//         <div className="flex justify-center items-center mt-12">
-//           <CardItem
-//             translateZ={20}
-//             as="button"
-//             className="px-6 py-3 rounded-xl bg-black dark:bg-white dark:text-black text-white text-lg font-bold"
-//           >
-//             I am a teacher
-//           </CardItem>
-//         </div>
-//       </CardBody>
-//     </CardContainer>
-//     </Link>
-//       </div>
-
-//     </BackgroundBeamsWithCollision>
-//   );
-// }
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -114,6 +22,7 @@ export default function BackgroundBeamsWithCollisionDemo() {
   const [error, setError] = useState("");
   const [errorlog, setErrorLog] = useState("");
   const [errortlog, setErrorTLog] = useState("");
+  const [studentData, setStudentData] = useState(null);
 
 
   const router = useRouter();
@@ -124,7 +33,7 @@ export default function BackgroundBeamsWithCollisionDemo() {
 
     const formDataLog = new FormData(e.target);
     const data = {
-      name: formDataLog.get("srn"),
+      srn: formDataLog.get("srn"),
       password: formDataLog.get("password"),
     };
 
@@ -138,15 +47,21 @@ export default function BackgroundBeamsWithCollisionDemo() {
 
         credentials: "include", // Add this if you're using sessions
         body: JSON.stringify({
-          name: data.name,
+          srn: data.srn,
           password: data.password,
         }),
       });
 
       const result = await response.json();
-
+      console.log("Login response:", result); 
       if (response.ok) {
-        router.push("/student");
+        console.log("hey!! it works!")
+        // console.log("Student SRN:", result.data.srn);
+        setStudentData(result.data);
+        // router.push('/student')
+        router.push(`/student?srn=${encodeURIComponent(result.srn)}`);
+        // router.push(`/student?srn=${result.data.srn}`);
+        
       } else {
         setErrorLog("Login failed");
       }
@@ -163,7 +78,7 @@ export default function BackgroundBeamsWithCollisionDemo() {
 
     const formData = new FormData(e.target);
     const data = {
-      name: formData.get("name"),
+      srn: formData.get("srn"),
       email: formData.get("email"),
       password: formData.get("password"),
       confirmPassword: formData.get("confirmPassword"),
@@ -184,7 +99,7 @@ export default function BackgroundBeamsWithCollisionDemo() {
 
         credentials: "include", // Add this if you're using sessions
         body: JSON.stringify({
-          name: data.name,
+          srn: data.srn,
           email: data.email,
           password: data.password,
         }),
@@ -193,7 +108,10 @@ export default function BackgroundBeamsWithCollisionDemo() {
       const result = await response.json();
 
       if (response.ok) {
-        router.push("/student");
+        setStudentData(result.data);
+        //router.push("/student");
+        router.push(`/student?srn=${encodeURIComponent(result.srn)}`);
+        // router.push(`/student?name=${result.data.srn}`);
       } else {
         setError(result.message || "Signup failed");
       }
@@ -373,7 +291,7 @@ export default function BackgroundBeamsWithCollisionDemo() {
                 {error && <div className="text-red-500 text-sm">{error}</div>}
                 <div className="space-y-2">
                   <Input
-                    name="name"
+                    name="srn"
                     type="text"
                     placeholder="Student SRN"
                     className="w-full"
