@@ -60,6 +60,21 @@ app.config['MYSQL_PASSWORD'] = 'hi'
 app.config['MYSQL_DB'] = 'parsi'
 mysql = MySQL(app)
 
+def run_stored_procedure(deadline_time):
+    cur = mysql.connection.cursor()
+    try:
+        # Call the stored procedure
+        cur.execute("CALL SetSubmissionDeadline(%s)", (deadline_time,))
+        mysql.connection.commit()
+        return True
+    except Exception as e:
+        print(f"Error running stored procedure: {e}")
+        return False
+    finally:
+        cur.close()
+
+
+
 def authenticate_student(srn, password):
     # Connect to the database
     cur = mysql.connection.cursor()
@@ -264,7 +279,10 @@ def upload_file():
         
         except Exception as e:
             app.logger.error(f"Database error: {str(e)}")
-            return False
+            if str(e)=="(1644, 'Submission deadline has passed. No new submissions allowed.')":
+                return jsonify({"error": "Submission deadline has passed. No new submissions allowed."}), 400
+
+            return jsonify({"error": "File upload failed"}), 500
         finally:
             cur.close()
 
@@ -273,6 +291,8 @@ def upload_file():
         # with open(output_path, "w") as f:
         #     f.write(file_content)
     return jsonify({"error": "File upload failed"}), 500
+
+
 
 
 @app.route('/api/studentlist', methods=['GET'])
@@ -313,6 +333,65 @@ def get_student_code(student_id):
         
         if result:
             file_content = result[0]
+            return jsonify({"file_content": file_content}), 200
+        else:
+            return jsonify({"message": "No code found for this student"}), 404
+    except Exception as e:
+        app.logger.error(f"Database error: {str(e)}")
+        return jsonify({"message": "Server error"}), 500
+    finally:
+        cur.close()
+
+@app.route('/api/set-submission-time', methods=['POST'])
+def set_submission_time():
+    data = request.get_json()
+    deadline_time = data.get("submissionTime")
+    deadline_time = deadline_time.replace('T', ' ') + ":00"
+
+    # submission_time = datetime.fromisoformat(submission_time_str)
+
+    print("data: ",deadline_time)
+    if not deadline_time:
+        return jsonify({"error": "Deadline time is required"}), 400
+
+    success = run_stored_procedure(deadline_time)
+
+    if success:
+        return jsonify({"message": "Submission deadline set successfully"}), 200
+    else:
+        return jsonify({"error": "Failed to set submission deadline"}), 500
+
+
+@app.route('/api/students/<student_id>/delete', methods=['DELETE'])
+def delete_student_record(student_id):
+    try:
+        print("student_id:", student_id)
+        cur = mysql.connection.cursor()
+        
+        # Replace `table_name` with the actual table name
+        cur.execute(" DELETE FROM submissions WHERE srn = %s; ", (student_id,))
+        mysql.connection.commit()
+        
+        return jsonify({"message": f"Successfully deleted submission for student {student_id}"}), 200
+    
+    except Exception as e:
+        app.logger.error(f"Database error: {str(e)}")
+        return jsonify({"error": "Failed to delete record."}), 500
+    
+    finally:
+        cur.close()
+
+
+@app.route("/api/no-submission", methods=['GET'])
+def get_no_submission_code():
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT s.srn FROM students s LEFT JOIN submissions sub ON s.srn = sub.srn WHERE sub.id IS NULL;")
+        result = cur.fetchall()
+        print("result", result)
+        
+        if result:
+            file_content = result
             return jsonify({"file_content": file_content}), 200
         else:
             return jsonify({"message": "No code found for this student"}), 404
