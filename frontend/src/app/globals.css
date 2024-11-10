@@ -19,3 +19,23 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.scrollbar-visible {
+  scrollbar-width: thin;
+  scrollbar-color: #4a5568 #edf2f7;
+}
+
+.scrollbar-visible::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb {
+  background-color: #4a5568;
+  border-radius: 6px;
+  border: 3px solid #edf2f7;
+}
+
+.scrollbar-visible::-webkit-scrollbar-track {
+  background-color: #edf2f7;
+}

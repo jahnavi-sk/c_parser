@@ -53,6 +53,19 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
 
+def connect_as_student():
+    app.config['MYSQL_USER'] = 'student'
+    app.config['MYSQL_PASSWORD'] = 's123'
+
+def connect_as_teacher():
+    app.config['MYSQL_USER'] = 'teacher'
+    app.config['MYSQL_PASSWORD'] = 't123'
+
+def connect_as_admin():
+    app.config['MYSQL_USER'] = 'admin'
+    app.config['MYSQL_PASSWORD'] = 'a123'
+
+
 # MySQL configurations
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
@@ -141,8 +154,6 @@ def student_signup():
     # Handle preflight requests
     if request.method == "OPTIONS":
         return '', 204
-    
-
     if request.method == 'OPTIONS':
         response = jsonify({})
         response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
@@ -160,6 +171,7 @@ def student_signup():
         app.logger.debug(f"Content-Type header: {content_type}")
 
         # Parse JSON data
+        
         data = request.get_json(silent=True)
         if not data:
             app.logger.error("No JSON data received")
@@ -177,6 +189,7 @@ def student_signup():
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
         # Create database cursor
+        connect_as_admin()
         cur = mysql.connection.cursor()
 
         try:
@@ -193,11 +206,11 @@ def student_signup():
             )
             # Commit the transaction
             mysql.connection.commit()
-
-            return jsonify({
-                'message': 'Student registered successfully',
-                'student': {'srn': srn, 'email': email}
-            }), 201
+            return jsonify({'message': 'Student registration successful', 'srn': srn}), 200
+            # return jsonify({
+            #     'message': 'Student registered successfully',
+            #     'student': {'srn': srn, 'email': email}
+            # }), 201
         except Exception as db_error:
             app.logger.error(f"Database error: {str(db_error)}")
             return jsonify({'message': 'Database error occurred'}), 500
@@ -218,11 +231,22 @@ def student_login():
     
     srn = data.get('srn')
     password = data.get('password')
+    connect_as_student()
+    cur = mysql.connection.cursor()
+    try:
+        cur.execute("SELECT id, srn, password FROM students WHERE srn = %s", (srn,))
+        student = cur.fetchone()
+        if student and bcrypt.checkpw(password.encode('utf-8'), student[2].encode('utf-8')):
+            return jsonify({'message': 'Login successful', 'srn': srn}), 200
+        else:
+            return jsonify({'message': 'Invalid SRN or password'}), 401
+    finally:
+        cur.close()
 
-    if authenticate_student(srn, password):
-        return jsonify({'message': 'Login successful', 'token': 'your_jwt_token_here', 'srn': srn}), 200
-    else:
-        return jsonify({'message': 'Invalid SRN or password'}), 401
+    # if authenticate_student(srn, password):
+    #     return jsonify({'message': 'Login successful', 'token': 'your_jwt_token_here', 'srn': srn}), 200
+    # else:
+    #     return jsonify({'message': 'Invalid SRN or password'}), 401
 
 
 @app.route('/api/teacher/login', methods=['POST'])
@@ -237,13 +261,25 @@ def teacher_login():
     print("name", name)
     print("pwd", password)
 
-    
+    connect_as_teacher()
+    cur = mysql.connection.cursor()
+    try:
+        cur.execute("SELECT id, password FROM teachers WHERE id = %s", (name,))
+        teacher = cur.fetchone()
+        if teacher and password == teacher[1]:
+            return jsonify({'message': 'Login successful'}), 200
+        else:
+            return jsonify({'message': 'Invalid SRN or password'}), 401
+    finally:
+        cur.close()
 
-    if authenticate_teacher(name, password):
-        return jsonify({'message': 'Login successful', 'token': 'your_jwt_token_here'}), 200
-    else:
-        return jsonify({'message': 'Invalid SRN or password'}), 401
+    # if authenticate_teacher(name, password):
+    #     return jsonify({'message': 'Login successful', 'token': 'your_jwt_token_here'}), 200
+    # else:
+    #     return jsonify({'message': 'Invalid SRN or password'}), 401
 
+
+##################mostly correct and the better one
 @app.route('/api/upload', methods=["POST"])
 def upload_file():
     if "file" not in request.files:
@@ -266,14 +302,15 @@ def upload_file():
             f.write(file_content)
 
 
-        try:
+        try: 
+            connect_as_student()
             cur = mysql.connection.cursor()
             insert_query = """
-            INSERT INTO submissions (srn, file_name, file_content)
-            VALUES (%s, %s, %s)
+            INSERT INTO submissions (srn, file_name, file_content,marks)
+            VALUES (%s, %s, %s,%s)
             """
 
-            cur.execute(insert_query, (srn, file.filename, file_content))
+            cur.execute(insert_query, (srn, file.filename, file_content,-1))
             mysql.connection.commit()
             return jsonify({"message": "File saved to database"}), 200
         
@@ -291,16 +328,59 @@ def upload_file():
         # with open(output_path, "w") as f:
         #     f.write(file_content)
     return jsonify({"error": "File upload failed"}), 500
+##################
 
+
+@app.route('/api/student/submit', methods=['POST'])
+def student_submit():
+    connect_as_student()
+    data = request.get_json()
+    srn = data.get('srn')
+    file_name = data.get('file_name')
+    file_content = data.get('file_content')
+    
+    cur = mysql.connection.cursor()
+    try:
+        cur.callproc('submit_assignment', [srn, file_name, file_content])
+        mysql.connection.commit()
+        return jsonify({"message": "Assignment submitted successfully"}), 200
+    except Exception as e:
+        app.logger.error(f"Error submitting assignment: {e}")
+        return jsonify({"error": "Failed to submit assignment"}), 500
+    finally:
+        cur.close()
+
+
+##########
+# seeeee thisss
+@app.route('/api/teacher/grade', methods=['POST'])
+def grade_student():
+    connect_as_teacher()
+    data = request.get_json()
+    srn = data.get('srn')
+    
+    cur = mysql.connection.cursor()
+    try:
+        cur.callproc('grade_assignment', [srn])
+        mysql.connection.commit()
+        return jsonify({"message": f"Student {srn} graded successfully"}), 200
+    except Exception as e:
+        app.logger.error(f"Error grading assignment: {e}")
+        return jsonify({"error": "Failed to grade student"}), 500
+    finally:
+        cur.close()
+############
 
 
 
 @app.route('/api/studentlist', methods=['GET'])
 def get_student_ids():
     try:
+        connect_as_teacher()
         cur = mysql.connection.cursor()
-        cur.execute("SELECT srn FROM students where graded=0")
+        cur.execute("Select srn from submissions where marks= -1 ;")
         student_ids = [row[0] for row in cur.fetchall()]
+        print("IDS!" ,student_ids)
         return jsonify({"student_ids": student_ids})
     except Exception as e:
         app.logger.error(f"Database error: {str(e)}")
@@ -311,10 +391,10 @@ def get_student_ids():
 @app.route('/api/students/<student_id>/grade', methods=['POST'])
 def update_graded_status(student_id):
     try:
+        connect_as_teacher()
         print("student_id", student_id)
         cur = mysql.connection.cursor()
-        cur.execute("UPDATE students SET graded = CASE WHEN srn = %s THEN true ELSE false END WHERE id > 0;", (student_id,))
-       
+        cur.execute("UPDATE students SET graded = true WHERE srn = %s;", (student_id,))
         mysql.connection.commit()
         return jsonify({"message": f"Successfully updated graded status for student {student_id}"})
     except Exception as e:
@@ -327,6 +407,7 @@ def update_graded_status(student_id):
 @app.route("/api/students/<string:student_id>/code", methods=['GET'])
 def get_student_code(student_id):
     try:
+        connect_as_teacher()
         cur = mysql.connection.cursor()
         cur.execute("SELECT file_content FROM submissions WHERE srn = %s ORDER BY id DESC LIMIT 1", (student_id,))
         result = cur.fetchone()
@@ -344,27 +425,40 @@ def get_student_code(student_id):
 
 @app.route('/api/set-submission-time', methods=['POST'])
 def set_submission_time():
+    connect_as_teacher()
     data = request.get_json()
     deadline_time = data.get("submissionTime")
     deadline_time = deadline_time.replace('T', ' ') + ":00"
 
     # submission_time = datetime.fromisoformat(submission_time_str)
-
-    print("data: ",deadline_time)
-    if not deadline_time:
-        return jsonify({"error": "Deadline time is required"}), 400
-
-    success = run_stored_procedure(deadline_time)
-
-    if success:
+    cur = mysql.connection.cursor()
+    try:
+        cur.execute("CALL SetSubmissionDeadline(%s)", (deadline_time,))
+        #cur.callproc("SetSubmissionDeadline", [deadline_time])
+        mysql.connection.commit()
         return jsonify({"message": "Submission deadline set successfully"}), 200
-    else:
+    except Exception as e:
+        app.logger.error(f"Error setting submission deadline: {e}")
         return jsonify({"error": "Failed to set submission deadline"}), 500
+    finally:
+        cur.close()
+
+    # print("data: ",deadline_time)
+    # if not deadline_time:
+    #     return jsonify({"error": "Deadline time is required"}), 400
+
+    # success = run_stored_procedure(deadline_time)
+
+    # if success:
+    #     return jsonify({"message": "Submission deadline set successfully"}), 200
+    # else:
+    #     return jsonify({"error": "Failed to set submission deadline"}), 500
 
 
 @app.route('/api/students/<student_id>/delete', methods=['DELETE'])
 def delete_student_record(student_id):
     try:
+        connect_as_teacher()
         print("student_id:", student_id)
         cur = mysql.connection.cursor()
         
@@ -385,8 +479,9 @@ def delete_student_record(student_id):
 @app.route("/api/no-submission", methods=['GET'])
 def get_no_submission_code():
     try:
+        connect_as_admin()
         cur = mysql.connection.cursor()
-        cur.execute("SELECT s.srn FROM students s LEFT JOIN submissions sub ON s.srn = sub.srn WHERE sub.id IS NULL;")
+        cur.execute("SELECT s.srn FROM students s LEFT JOIN submissions sub ON s.srn = sub.srn WHERE sub.srn IS NULL;")
         result = cur.fetchall()
         print("result", result)
         
@@ -401,6 +496,104 @@ def get_no_submission_code():
     finally:
         cur.close()
 
+
+@app.route("/api/notGraded", methods=['GET'])
+def get_not_graded():
+    try:
+        connect_as_admin()
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT s.srn FROM students s WHERE s.srn IN (SELECT srn FROM submissions WHERE marks = -1)")
+        result = cur.fetchall()
+        print("result", result)
+        
+        if result:
+            file_content = result
+            return jsonify({"file_content": file_content}), 200
+        else:
+            return jsonify({"message": "No code found for this student"}), 404
+    except Exception as e:
+        app.logger.error(f"Database error: {str(e)}")
+        return jsonify({"message": "Server error"}), 500
+    finally:
+        cur.close()
+
+# @app.route("/api/gradedStats", methods=['GET'])
+# def get_graded_nongraded_stats():
+#     try:
+#         connect_as_teacher()
+#         cur = mysql.connection.cursor()
+#         cur.execute("SELECT COUNT(CASE WHEN marks < 5 THEN 1 END) AS below_5, COUNT(CASE WHEN marks BETWEEN 5 AND 8 THEN 1 END) AS between_5_and_8, COUNT(CASE WHEN marks > 8 THEN 1 END) AS above_8 FROM submissions;")
+#         result = cur.fetchall()
+#         if result:
+#             file_content = result
+#             return jsonify({"file_content": file_content}), 200
+#         else:
+#             return jsonify({"message": "No code found for this student"}), 404
+#     except Exception as e:
+#         app.logger.error(f"Database error: {str(e)}")
+#         return jsonify({"message": "Server error"}), 500
+#     finally:
+#         cur.close()
+
+@app.route("/api/gradedStats", methods=['GET'])
+def get_graded_nongraded_stats():
+    try:
+        connect_as_teacher()
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT 
+                COUNT(CASE WHEN marks < 5 THEN 1 END) AS below_5,
+                COUNT(CASE WHEN marks BETWEEN 5 AND 8 THEN 1 END) AS between_5_and_8,
+                COUNT(CASE WHEN marks > 8 THEN 1 END) AS above_8
+            FROM submissions;
+        """)
+        result = cur.fetchone()
+        if result:
+            return jsonify({
+                "stats": ",".join(map(str, result))
+            }), 200
+        else:
+            return jsonify({"message": "No statistics found"}), 404
+    except Exception as e:
+        app.logger.error(f"Database error: {str(e)}")
+        return jsonify({"message": "Server error"}), 500
+    finally:
+        cur.close()
+
+@app.route('/api/students/<student_id>/marks', methods=['POST'])
+def update_marks(student_id):
+    try:
+        data = request.get_json()
+        marks = data.get('marks')
+        
+        if marks is None or not isinstance(marks, (int, float)) or marks < 0 or marks > 10:
+            return jsonify({'error': 'Invalid marks value'}), 400
+        # Update marks in the database
+        connect_as_teacher()
+        cur = mysql.connection.cursor()        
+        # Update the marks in your student_submissions table
+        update_query = """
+            UPDATE submissions 
+            SET marks = %s 
+            WHERE srn = %s;
+        """
+        cur.execute(update_query, (marks, student_id,))
+
+        update_graded_query = """
+        UPDATE students 
+        SET graded = true 
+        WHERE srn = %s;
+         """
+        cur.execute(update_graded_query, (student_id,))
+        mysql.connection.commit()
+        return jsonify({'message': 'Marks updated successfully'}), 200
+        
+    except Exception as e:
+        print(f"Error updating marks: {str(e)}")
+        return jsonify({'error': 'Failed to update marks'}), 500
+    finally:
+        cur.close()
+    
 
 if __name__ == '__main__':
     # Enable debug logging

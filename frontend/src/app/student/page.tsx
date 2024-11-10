@@ -11,12 +11,14 @@ export default function ShootingStarsAndStarsBackgroundDemo() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [showErrorBox, setShowErrorBox] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [textContent, setTextContent] = useState("");
   const searchParams = useSearchParams();
   const srn = searchParams.get('srn');
   
 
   const handleFileUpload = (uploadedFiles: File[]) => {
     setFiles(uploadedFiles);
+    setTextContent("");
     console.log(uploadedFiles);
   };
 
@@ -55,44 +57,51 @@ export default function ShootingStarsAndStarsBackgroundDemo() {
   };
 
   const handleSubmit = async () => {
-    console.log("SRN IS!!",srn)
-    if (files.length > 0) {
-      const formData = new FormData();
-      formData.append("file", files[0]);
-  
-    if (srn) {
-      formData.append("srn", srn);
-    } else {
-      console.error("SRN is missing.");
+    if (!srn) {
       alert("Error: SRN is missing.");
       return;
     }
-      try {
-        const response = await fetch("http://localhost:5001/api/upload", {
-          method: "POST",
-          body: formData,
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-          },
-        });
-  
-        if (response.ok) {
-          const result = await response.json();
-          console.log("File saved as text:", result);
-          setUploadSuccess(true);
-        } else {
-          // console.log(response)
-          const result = await response.json();
-          alert(result.error)
-          console.log(result.error);
-          // console.error("Failed to upload the file.");
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        console.log("other error")
-      }
+
+    const formData = new FormData();
+    formData.append("srn", srn);
+
+    if (files.length > 0) {
+      // Handle file upload
+      formData.append("file", files[0]);
+    } else if (textContent.trim()) {
+      // Handle text submission by creating a file from the text content
+      const textBlob = new Blob([textContent], { type: 'text/plain' });
+      console.log("text blobbbb", textBlob)
+      const textFile = new File([textBlob], 'submission.c', { type: 'text/plain' });
+      formData.append("file", textFile);
     } else {
-      alert("Please upload a file before submitting.");
+      console.log("text content", textContent)
+      alert("Please either upload a file or enter text before submitting.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5001/api/upload", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Submission successful:", result);
+        setUploadSuccess(true);
+      } else {
+        const result = await response.json();
+        alert(result.error);
+        console.log(result.error);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setErrorMessage("Failed to submit. Please try again.");
+      setShowErrorBox(true);
     }
   };
   
@@ -131,6 +140,10 @@ export default function ShootingStarsAndStarsBackgroundDemo() {
     setUploadSuccess(false);
   };
 
+  const handleTextChange = (text: string) => {
+    setTextContent(text);
+    setFiles([]);
+  };
   return (
     <div>
       <div className="h-screen rounded-md bg-neutral-900 flex flex-col items-center relative w-full">
@@ -148,7 +161,7 @@ export default function ShootingStarsAndStarsBackgroundDemo() {
             <FileUpload onChange={handleFileUpload} />
           </div>
           <div className="z-20 w-full md:w-3/5 max-w-4xl mx-auto mt-6 md:mt-0">
-            <TextArea />
+            <TextArea  onChange={handleTextChange}/>
           </div>
         </div>
         <button
