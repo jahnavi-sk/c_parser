@@ -70,7 +70,7 @@ def connect_as_admin():
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'hi'
-app.config['MYSQL_DB'] = 'parsi'
+app.config['MYSQL_DB'] = 'newparsi'
 mysql = MySQL(app)
 
 def run_stored_procedure(deadline_time):
@@ -485,11 +485,12 @@ def get_no_submission_code():
         result = cur.fetchall()
         print("result", result)
         
-        if result:
-            file_content = result
-            return jsonify({"file_content": file_content}), 200
+        # Extract srn values from the query result
+        no_submission_students = [r[0] for r in result]  # r[0] contains the srn value
+        if no_submission_students:
+            return jsonify({"no_submission_students": no_submission_students}), 200
         else:
-            return jsonify({"message": "No code found for this student"}), 404
+            return jsonify({"message": "Every student has submitted their code!"}), 200
     except Exception as e:
         app.logger.error(f"Database error: {str(e)}")
         return jsonify({"message": "Server error"}), 500
@@ -506,11 +507,12 @@ def get_not_graded():
         result = cur.fetchall()
         print("result", result)
         
-        if result:
-            file_content = result
-            return jsonify({"file_content": file_content}), 200
+        # Extract srn values from the query result and return them
+        ungraded_students = [r[0] for r in result]  # r[0] contains the srn value
+        if ungraded_students:
+            return jsonify({"ungraded_students": ungraded_students}), 200
         else:
-            return jsonify({"message": "No code found for this student"}), 404
+            return jsonify({"message": "All students have been graded!"}), 200
     except Exception as e:
         app.logger.error(f"Database error: {str(e)}")
         return jsonify({"message": "Server error"}), 500

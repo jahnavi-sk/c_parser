@@ -123,29 +123,31 @@ export default function TeacherDashboard() {
 
 
 
-  const handleViewNoSubmission = async (): Promise<void> => {
-    setCodeContent(null);
-    setSubmissionView(null);
-    setStatsView(null)
-    setStats(null)
-    setNotGradedView(null);
+const handleViewNoSubmission = async (): Promise<void> => {
+  setCodeContent(null);
+  setSubmissionView(null);
+  setStatsView(null);
+  setStats(null);
+  setNotGradedView(null);
 
   try {
-    const response = await fetch(`http://localhost:5001/api/no-submission`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch code content");
-    }
-    const data = await response.json();
-    if (data.file_content.length > 0) {
-      setSubmissionView(data.file_content.join("\n"));
-    } else {
-      setSubmissionView("All students have submitted their code!"); 
-    }
+      const response = await fetch(`http://localhost:5001/api/no-submission`);
+      if (!response.ok) {
+          throw new Error("Failed to fetch students with no submission");
+      }
+      const data = await response.json();
+      const noSubmissionStudents = data.no_submission_students || [];  // Fallback to empty array
+      if (noSubmissionStudents.length > 0) {
+          setSubmissionView("The following students have not submitted their code: " + noSubmissionStudents.join(", "));
+      } else {
+          setSubmissionView("Every student has submitted their code!");
+      }
   } catch (err) {
-    console.error("Error fetching code content:", err);
-    setSubmissionView("Error loading code");
+      console.error("Error fetching students with no submission:", err);
+      setSubmissionView("Error loading data");
   }
 };
+
 
 const handleNotGraded = async (): Promise<void> => {
   setCodeContent(null);
@@ -154,22 +156,24 @@ const handleNotGraded = async (): Promise<void> => {
   setStats(null) 
   setNotGradedView(null);
 
-try {
-  const response = await fetch(`http://localhost:5001/api/notGraded`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch code content");
+  try {
+    const response = await fetch(`http://localhost:5001/api/notGraded`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch ungraded student data");
+    }
+    const data = await response.json();
+    const ungradedStudents = data.ungraded_students || [];  // Fallback to empty array
+    if (ungradedStudents.length > 0) {
+      setNotGradedView("The following students have not been graded: " + ungradedStudents.join(", "));
+    } else {
+      setNotGradedView("All students have been graded!"); 
+    }
+  } catch (err) {
+    console.error("Error fetching ungraded student data:", err);
+    setNotGradedView("Error loading data");
   }
-  const data = await response.json();
-  if (data.file_content.length > 0) {
-    setNotGradedView(data.file_content.join("\n"));
-  } else {
-    setNotGradedView("All students have submitted their code!"); 
-  }
-} catch (err) {
-  console.error("Error fetching code content:", err);
-  setNotGradedView("Error loading code");
-}
 };
+
 
 // const gradedNongraded = async(): Promise<void> =>{
 //   setCodeContent(null);
