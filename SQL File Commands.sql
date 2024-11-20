@@ -41,13 +41,6 @@ CREATE TABLE libraries (
     FOREIGN KEY (submissionID) REFERENCES submissions(id) ON DELETE CASCADE
 );
 
-CREATE TABLE files (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    submissionID INT,
-    FOREIGN KEY (submissionID) REFERENCES submissions(id) ON DELETE CASCADE
-);
 
 CREATE TABLE variables (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -96,6 +89,42 @@ CREATE TABLE SubmissionDeadline (
 );
 
 
+ALTER TABLE datatypes
+ADD CONSTRAINT fk_submission_id
+FOREIGN KEY (submissionID) REFERENCES submissions(id)
+ON DELETE CASCADE;
+
+ALTER TABLE libraries
+ADD CONSTRAINT fk_submission_id1
+FOREIGN KEY (submissionID) REFERENCES submissions(id)
+ON DELETE CASCADE;
+
+ALTER TABLE variables
+ADD CONSTRAINT fk_submission_id2
+FOREIGN KEY (submissionID) REFERENCES submissions(id)
+ON DELETE CASCADE;
+
+
+ALTER TABLE func
+ADD CONSTRAINT fk_submission_id3
+FOREIGN KEY (returnTypeID) REFERENCES datatypes(id)
+ON DELETE CASCADE;
+
+ALTER TABLE func
+ADD CONSTRAINT fk_datatype_id
+FOREIGN KEY (submissionID) REFERENCES submissions(id)
+ON DELETE CASCADE;
+
+ALTER TABLE controlStructure
+ADD CONSTRAINT fk_submission_id4
+FOREIGN KEY (submissionID) REFERENCES submissions(id)
+ON DELETE CASCADE;
+
+ALTER TABLE controlStructure
+ADD CONSTRAINT fk_parent_id
+FOREIGN KEY (parentFunctionID) REFERENCES func(id)
+ON DELETE CASCADE;
+
 
 -- Trigger
 DELIMITER $$
@@ -143,6 +172,15 @@ GRANT SELECT, INSERT ON parsi.submissions TO 'teacher'@'localhost';
 GRANT UPDATE ON parsi.submissions TO 'teacher'@'localhost';
 GRANT DELETE ON parsi.submissions TO 'teacher'@'localhost';
 
+
+GRANT DELETE ON parsi.datatypes TO 'teacher'@'localhost';
+GRANT DELETE ON parsi.variables TO 'teacher'@'localhost';
+GRANT DELETE ON parsi.func TO 'teacher'@'localhost';
+GRANT DELETE ON parsi.libraries TO 'teacher'@'localhost';
+GRANT DELETE ON parsi.controlStructure TO 'teacher'@'localhost';
+
+
+
 --Grants priviliges to students
 GRANT SELECT,INSERT ON parsi.students TO 'student'@'localhost';
 GRANT INSERT ON parsi.submissions TO 'student'@'localhost';
@@ -154,6 +192,13 @@ GRANT SELECT ON parsi.student_submissions TO 'student'@'localhost';
 
 GRANT DELETE ON parsi.SubmissionDeadline TO 'teacher'@'localhost';
 GRANT INSERT ON parsi.SubmissionDeadline TO 'teacher'@'localhost';
+
+
+GRANT SELECT, INSERT ON parsi.datatypes TO 'student'@'localhost';
+GRANT SELECT, INSERT ON parsi.variables TO 'student'@'localhost';
+GRANT SELECT, INSERT ON parsi.func TO 'student'@'localhost';
+GRANT SELECT, INSERT ON parsi.libraries TO 'student'@'localhost';
+GRANT SELECT, INSERT ON parsi.controlStructure TO 'student'@'localhost';
 
 -- Apply the privileges
 FLUSH PRIVILEGES;
