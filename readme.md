@@ -1,12 +1,17 @@
 ### C Lang Parser
 
-- Backend
+- #### Backend
+  
 ```cd backendi```
+
 ```python3 app.py```
 
-- Frontend
+- #### Frontend
+  
 ```cd frontend```
+
 ```npm i``` (have to run just once)
+
 ```npm run dev```
 
 
