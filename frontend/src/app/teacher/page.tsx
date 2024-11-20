@@ -25,6 +25,9 @@ export default function TeacherDashboard() {
 
   // const [submissionView, setSubmissionView] = useState(null);
   const [notGraded, setNotGradedView] = useState<string | null>(null);
+  const [datatypeContent, setDatatypeContent] = useState<string | null>(null);
+  const [functionContent, setFunctionContent] = useState<string | null>(null);
+
 
   const [statsView, setStatsView] = useState(null);
 
@@ -69,6 +72,8 @@ export default function TeacherDashboard() {
       setSelectedStudent(id);
       setCodeContent(null);
       setIsOpen(false);
+      setDatatypeContent(null);
+      setFunctionContent(null);
     
   };
 
@@ -78,6 +83,8 @@ export default function TeacherDashboard() {
     setStatsView(null);
     setStats(null);
     setNotGradedView(null);
+    setDatatypeContent(null);
+    setFunctionContent(null);
 
     if (!selectedStudent) {
         alert("Please select a student first.");
@@ -98,16 +105,77 @@ export default function TeacherDashboard() {
     }
 };
 
-  const handleStudentDeleteRecord = async () => {
+const handleViewDatatype = async (): Promise<void> => {
+  setCodeContent(null);
+  setSubmissionView(null);
+  setStatsView(null);
+  setStats(null);
+  setNotGradedView(null);
+  setDatatypeContent(null);
+  setFunctionContent(null);
+
   if (!selectedStudent) {
       alert("Please select a student first.");
       return;
   }
 
   try {
-      const response = await fetch(`http://localhost:5001/api/students/${selectedStudent}/delete`);
+      const response = await fetch(`http://localhost:5001/api/students/${selectedStudent}/datatype`);
       if (!response.ok) {
-        throw new Error("Failed to fetch code content.");
+          throw new Error("Failed to fetch code content.");
+      }
+
+      const data: { file_content: string } = await response.json();
+      setDatatypeContent(data.file_content);
+  } catch (err) {
+      console.error("Error fetching code content:", err);
+      setCodeContent("Error loading code!");
+  }
+};
+
+const handleViewFunction = async (): Promise<void> => {
+  setCodeContent(null);
+  setSubmissionView(null);
+  setStatsView(null);
+  setStats(null);
+  setNotGradedView(null);
+  setDatatypeContent(null);
+  setFunctionContent(null)
+
+  if (!selectedStudent) {
+      alert("Please select a student first.");
+      return;
+  }
+
+  try {
+      const response = await fetch(`http://localhost:5001/api/students/${selectedStudent}/function`);
+      if (!response.ok) {
+          throw new Error("Failed to fetch code content.");
+      }
+
+      const data: { file_content: string } = await response.json();
+      setFunctionContent(data.file_content);
+  } catch (err) {
+      console.error("Error fetching code content:", err);
+      setFunctionContent("Error loading code!");
+  }
+};
+
+const handleStudentDeleteRecord = async () => {
+  if (!selectedStudent) {
+      alert("Please select a student first.");
+      return;
+  }
+
+  try {
+      const response = await fetch(`http://localhost:5001/api/students/${selectedStudent}/delete`, {
+        method: 'DELETE', // Set the method to DELETE
+    });
+      if (!response.ok) {
+        console.log("here");
+        console.log("resp :",response);
+        throw new Error("Failed to delete.");
+        
     }
     const data: { file_content: string } = await response.json();
 
@@ -129,6 +197,8 @@ const handleViewNoSubmission = async (): Promise<void> => {
   setStatsView(null);
   setStats(null);
   setNotGradedView(null);
+  setDatatypeContent(null);
+  setFunctionContent(null);
 
   try {
       const response = await fetch(`http://localhost:5001/api/no-submission`);
@@ -155,6 +225,8 @@ const handleNotGraded = async (): Promise<void> => {
   setStatsView(null)
   setStats(null) 
   setNotGradedView(null);
+  setDatatypeContent(null);
+  setFunctionContent(null);
 
   try {
     const response = await fetch(`http://localhost:5001/api/notGraded`);
@@ -200,6 +272,8 @@ const gradeDistribution = async(): Promise<void> => {
   setStatsView(null);
   setStats(null)
   setNotGradedView(null);
+  setDatatypeContent(null);
+  setFunctionContent(null);
     
   try {
     const response = await fetch(`http://localhost:5001/api/gradedStats`);
@@ -293,6 +367,8 @@ const handleMarksSubmit = async () => {
     setStatsView(null)
     setStats(null)
     setNotGradedView(null);
+    setDatatypeContent(null);
+    setFunctionContent(null);
   }
   
   return (
@@ -367,6 +443,13 @@ const handleMarksSubmit = async () => {
             </span>
           </button>
 
+          <button onClick={handleViewDatatype}  
+          className="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-xl font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800 transform hover:scale-110 transition-all duration-300 ease-in-out active:from-teal-300 active:to-lime-300 active:scale-95">
+            <span className="relative w-full px-10 py-8 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+              View Dataypes
+            </span>
+          </button>
+
           <button onClick={handleNotGraded} className="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-xl font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-red-200 via-red-300 to-yellow-200 group-hover:from-red-200 group-hover:via-red-300 group-hover:to-yellow-200 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400 transform hover:scale-110 transition-all duration-300 ease-in-out active:from-red-200 active:to-yellow-200 active:scale-95">
             <span className="relative w-full px-10 py-8 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
               List of ungraded students
@@ -435,6 +518,30 @@ const handleMarksSubmit = async () => {
               ) : (
                 " "
               )}
+              {datatypeContent ? (
+              <div className="mt-6 text-left">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                  Variable Datatypes
+                </h2>
+                <pre className="whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  {datatypeContent}
+                </pre>
+              </div>
+            ) : (
+              " "
+            )}
+            {functionContent ? (
+              <div className="mt-6 text-left">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                  Function Datatypes
+                </h2>
+                <pre className="whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  {functionContent}
+                </pre>
+              </div>
+            ) : (
+              " "
+            )}
               {stats && (
             <div className="mt-6 space-y-4">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
@@ -478,6 +585,7 @@ const handleMarksSubmit = async () => {
               </div>
             </div>
           )}
+
             </div>
           </div>
         </Card>
@@ -508,6 +616,12 @@ const handleMarksSubmit = async () => {
           <button onClick={handleStudentDeleteRecord} className="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-xl font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-500 to-pink-500 group-hover:from-purple-500 group-hover:to-pink-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800 transform hover:scale-110 transition-all duration-300 ease-in-out active:from-purple-500 active:to-pink-500 active:scale-95">
             <span className="relative w-full px-10 py-8 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
               Delete Record
+            </span>
+          </button>
+
+          <button onClick={handleViewFunction} className="relative inline-flex items-center justify-center p-0.5 text-xl font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 transform hover:scale-110 transition-all duration-300 ease-in-out active:from-green-500 active:to-blue-700 active:scale-95">
+            <span className="relative w-full px-10 py-8 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+              View Functions
             </span>
           </button>
 
